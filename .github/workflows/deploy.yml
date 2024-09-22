@@ -1,0 +1,39 @@
+name: Deploy React App to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # Trigger the workflow when changes are pushed to the 'main' branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest  # The operating system used to run the job
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2  # This action checks out your repository code
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2  # Set up Node.js for building the project
+        with:
+          node-version: '14'
+
+      - name: Install dependencies
+        run: npm install  # Install all dependencies defined in package.json
+
+      - name: Build React app
+        run: |
+          # Inject secrets into the .env file for use during the build process
+          echo "REACT_APP_APIKEY=${{ secrets.REACT_APP_APIKEY }}" >> .env
+          echo "REACT_APP_AUTHDOMAIN=${{ secrets.REACT_APP_AUTHDOMAIN }}" >> .env
+          echo "REACT_APP_PROJECTID=${{ secrets.REACT_APP_PROJECTID }}" >> .env
+          echo "REACT_APP_STORAGEBUCKET=${{ secrets.REACT_APP_STORAGEBUCKET }}" >> .env
+          echo "REACT_APP_MESSAGINGSENDERID=${{ secrets.REACT_APP_MESSAGINGSENDERID }}" >> .env
+          echo "REACT_APP_APPID=${{ secrets.REACT_APP_APPID }}" >> .env
+          npm run build  # Build the React app
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3  # Action to deploy the build to GitHub Pages
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}  # GitHub token for authentication
+          publish_dir: ./build  # Directory to deploy (the React build directory)
